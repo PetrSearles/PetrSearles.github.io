@@ -1,18 +1,36 @@
+//game website: https://petrsearles.github.io/
+
+
 var snake;
 var scl = 20;
 var apple;
 var food;
 var grass;
+var eatSound;
+var gameOverSound;
+var scoreElem;
+var ver;
 
 function preload() {
-  grass = loadImage('grass.png');
+  gameOverSound = loadSound('GameOver.wav');
+  eatSound = loadSound('Eating.wav');
+  grass = loadImage('grass.png');      //background image
   //apple = loadImage('apple.png');
 }
   
 
 function setup() {
+  ver = createDiv('Version 2.0');
+  ver.position(400, 20);
+  ver.id = 'version';
+  ver.style('color', 'white');
+  scoreElem = createDiv('Score = 0');
+  scoreElem.position(20, 20);
+  scoreElem.id = 'score';
+  scoreElem.style('color', 'white');
+  
   createCanvas(500, 500)
-  resetSketch();
+  resetSketch();          //start over option
   frameRate(10);
   var button = createButton("click here to reset or press R");
   button.mousePressed(resetSketch);
@@ -20,7 +38,7 @@ function setup() {
 
 function resetSketch() {
   snake = new Snake();
-  pickLocation();
+  pickLocation();          //spawn location
 }
 
 function pickLocation() {
@@ -32,9 +50,9 @@ function pickLocation() {
 
 
 function draw() {
-  background(150);
-  imageMode(CENTER);
-  image(grass, width/2, height/2);
+  background(150);     //background color
+  imageMode(CENTER);         
+  image(grass, width/2, height/2);          
   
   //image(apple, food.x, food.y, scl, scl);
   
@@ -44,19 +62,24 @@ function draw() {
     //text("Score: ", 10, 10);
   //}
   
-  if (snake.eat(food)) {
+  if (snake.eat(food)) {    //what happens when snake eats food
+    //score
+    var prevScore = parseInt(scoreElem.html().substring(8));
+    scoreElem.html('Score = ' + (prevScore + 1));
+    
+    eatSound.play();       //sound when you eat food
     pickLocation();
   }
+  
   snake.death();
   snake.update();
   snake.show();
   
 
-  //food
-  //image(apple, food.x, food.y);
-  fill(255, 0, 0);
-  noStroke();
-  rect(food.x, food.y, scl, scl) 
+  //food body
+  fill(255, 0, 0);     //food color
+  noStroke();     //no outline
+  rect(food.x, food.y, scl, scl)    
 }
 
 function keyPressed() {
@@ -89,20 +112,19 @@ function Snake() {
   this.total = 0;
   this.tail = [];
   
+  this.dir = function(x, y) {
+    this.xspeed = x;
+    this.yspeed = y;
+  }
   
   this.eat = function(pos) {
     var d = dist(this.x, this.y, pos.x, pos.y);
     if (d < 1) {
-      this.total++;
+      this.total++;      //if snake eats food -> it grows
       return true;
     } else {
       return false;
     }
-  }
-  
-  this.dir = function(x, y) {
-    this.xspeed = x;
-    this.yspeed = y;
   }
   
   this.death = function() {
@@ -110,7 +132,12 @@ function Snake() {
       var pos = this.tail[i];
       var d = dist(this.x, this.y, pos.x, pos.y);
       if (d < 1) {
-        alert('You died. Start over.');
+        //final score
+        var scoreVal = parseInt(scoreElem.html().substring(8));
+        scoreElem.html('Game ended! Your score was: ' + scoreVal);
+        
+        gameOverSound.play();                  //game over sound
+        alert('You died. Start over. After pressing OK reset page please. Its bugged, it wont show correct score.');        //shows up when snake dies
         this.total = 0;
         this.tail = [];
       }
@@ -128,17 +155,18 @@ function Snake() {
     this.x = this.x + this.xspeed*scl;
     this.y = this.y + this.yspeed*scl;
     
-    this.x = constrain(this.x, 0, width-scl);
-    this.y = constrain(this.y, 0, height-scl);
+    this.x = constrain(this.x, 0, width-scl);   //makes the sides solid
+    this.y = constrain(this.y, 0, height-scl);  //makes the sides solid
   }
     
   //snake body
   this.show = function() {
-    noStroke();
-    fill(255);
+    noStroke();    //no outline
+    fill(255);      //snake color
     for (var i = 0; i < this.tail.length; i++) {
       rect(this.tail[i].x, this.tail[i].y, scl, scl);
     }
+    noStroke();
     rect(this.x, this.y, scl, scl)
   
  }
